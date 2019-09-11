@@ -106,6 +106,7 @@ enum GridFSM
 struct Grid
 {
     b32 active;
+    b32 need_submit;
     Rect bounding_box;
     Brush brush;
     v2l origin;

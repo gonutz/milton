@@ -222,6 +222,7 @@ milton_grid_input(Milton* milton, MiltonInput* input, b32 end_stroke)
     auto wg = milton->working_grid;
     if ( end_stroke && milton->grid_fsm == Grid_DRAWING) {
         milton->grid_fsm = Grid_WAITING;
+        wg->need_submit = true;
         wg->active = false;
     }
     else if (input->input_count > 0) {
@@ -246,6 +247,8 @@ milton_grid_input(Milton* milton, MiltonInput* input, b32 end_stroke)
         reserve(&wg->points, stroke_count*2);
         reserve(&wg->pressures, stroke_count*2);
 
+        // TODO(ameen): The following code causes line crossings to be more opaque than everywhere else. One solution is to draw the grid as small segments that
+        // doesn't cross each other. The renderer doesn't support easily adding new types of objects.
         for(i64 i=0; i<wg->cols+1; i++)
         {
             auto x = wg->origin.x + i*wg->tile_size;
@@ -264,7 +267,8 @@ milton_grid_input(Milton* milton, MiltonInput* input, b32 end_stroke)
             v2l p1 = {x1, y};
             push_line(wg, milton->view, p0, p1);
         }
-        // TODO(ameen): The bb will always grow never shrink. I think it should instead be the union of
+
+        // TODO(ameen): The bb will always grow, never shrink. I think it should instead be the union of
         // previous bb and current bb to update the previous area.
         for(i64 i=0; i<wg->strokes.count; i++)
         {
@@ -596,8 +600,8 @@ milton_init(Milton* milton, i32 width, i32 height, f32 ui_scale, PATH_CHAR* file
 
     reset_working_stroke(milton);
 
-    milton->working_grid->cols = 16;
-    milton->working_grid->rows = 16;
+    milton->working_grid->cols = 8;
+    milton->working_grid->rows = 8;
     milton->working_grid->tile_size = 60;
 
     milton->current_mode = MiltonMode::PEN;
@@ -1441,8 +1445,48 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
         } else {
             if(milton->current_mode == MiltonMode::GRID)
             {
-                milton->render_settings.do_full_redraw = true;
-                // TODO(ameen): Write the stroke to the layer.
+                // NOTE(ameen): This function is very messy! For some reason releasing the mouse after panning is causing end_stroke to be true!
+                // This is total hack to prevent submiting the grid more than once. I can't cleanup this
+                // function because I don't own this code and I want to make it easy for me to port
+                // my changes to future releases of Milton.
+                if(milton->working_grid->need_submit)
+                {
+                    milton->working_grid->need_submit = false;
+                    if(gui_mark_color_used(milton->gui))
+                    {
+                        gpu_update_picker(milton->renderer, &milton->gui->picker);
+                    }
+
+                    for(i64 i=0; i<milton->working_grid->strokes.count; i++)
+                    {
+                        auto ws = milton->working_grid->strokes.data + i;
+
+                        // TODO(ameen): Duplicate code.
+                        Stroke new_stroke = {};
+                        CanvasState* canvas = milton->canvas;
+                        copy_stroke(&canvas->arena, milton->view, ws, &new_stroke);
+                        {
+                            new_stroke.layer_id = milton->view->working_layer_id;
+                            new_stroke.bounding_rect = rect_union(bounding_box_for_stroke(&new_stroke),
+                                                                bounding_box_for_stroke(&new_stroke));
+                            new_stroke.id = milton->canvas->stroke_id_count++;
+                        }
+                        mlt_assert(new_stroke.num_points > 0);
+                        mlt_assert(new_stroke.num_points <= STROKE_MAX_POINTS);
+                        auto* stroke = layer::layer_push_stroke(milton->canvas->working_layer, new_stroke);
+
+                        // TODO(ameen): We should add all grid strokes in one history element so it can be Undo-ed in one pop.
+                        // TODO(ameen): Make sure HistoryElement is not serialized before changing it.
+                        HistoryElement h = { HistoryElement_STROKE_ADD, milton->canvas->working_layer->id };
+                        push(&milton->canvas->history, h);
+                    }
+
+                    clear_stroke_redo(milton);
+
+                    // Make sure we show blurred layers when finishing a stroke.
+                    render_flags |= RenderBackendFlags_WITH_BLUR;
+                    milton->render_settings.do_full_redraw = true;
+                }
             }
             else if ( milton->working_stroke.num_points > 0 ) {
                 // We used the selected color to draw something. Push.
