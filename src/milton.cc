@@ -202,18 +202,19 @@ clear_stroke_redo(Milton* milton)
 void push_line(Grid *g, CanvasView *view, v2l p0, v2l p1)
 {
     auto s = add(&g->strokes);
-    *s = {};
+    s->id = 0;
+    s->brush = g->brush;
     s->points = g->points.data + g->points.count;
     g->points.count += 2;
     s->pressures = g->pressures.data + g->pressures.count;
     g->pressures.count += 2;
-
-    s->brush = g->brush;
     s->num_points = 2;
     s->points[0] = raster_to_canvas(view, p0);
     s->points[1] = raster_to_canvas(view, p1);
     s->pressures[0] = 1.0f;
     s->pressures[1] = 1.0f;
+    s->layer_id = 0;
+    s->render_element.count = 0;
 }
 static void
 milton_grid_input(Milton* milton, MiltonInput* input, b32 end_stroke)
