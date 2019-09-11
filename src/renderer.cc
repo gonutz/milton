@@ -1120,6 +1120,7 @@ gpu_clip_strokes_and_update(Arena* arena,
                             CanvasView* view,
                             i64 scale,
                             Layer* root_layer, Stroke* working_stroke,
+                            Grid *working_grid,
                             i32 x, i32 y, i32 w, i32 h, ClipFlags flags)
 {
     DArray<RenderElement>* clip_array = &r->clip_array;
@@ -1228,6 +1229,17 @@ gpu_clip_strokes_and_update(Arena* arena,
                 gpu_cook_stroke(arena, r, working_stroke, CookStroke_UPDATE_WORKING_STROKE);
 
                 push(clip_array, working_stroke->render_element);
+            }
+        }
+
+        if ( working_grid->layer_id == l->id ) {
+            if ( working_grid->active) {
+                for(i64 i=0; i<working_grid->strokes.count; i++)
+                {
+                    auto s = working_grid->strokes.data + i;
+                    gpu_cook_stroke(arena, r, s, CookStroke_UPDATE_WORKING_STROKE);
+                    push(clip_array, s->render_element);
+                }
             }
         }
 
@@ -1715,7 +1727,7 @@ gpu_render_to_buffer(Milton* milton, u8* buffer, i32 scale, i32 x, i32 y, i32 w,
     glViewport(0, 0, buf_w, buf_h);
     glScissor(0, 0, buf_w, buf_h);
     gpu_clip_strokes_and_update(&milton->root_arena, r, milton->view, milton->view->scale, milton->canvas->root_layer,
-                                &milton->working_stroke, 0, 0, buf_w, buf_h);
+                                &milton->working_stroke, milton->working_grid, 0, 0, buf_w, buf_h);
 
     r->flags |= RenderBackendFlags_WITH_BLUR;
     gpu_render_canvas(r, 0, 0, buf_w, buf_h, background_alpha);
@@ -1782,7 +1794,7 @@ gpu_render_to_buffer(Milton* milton, u8* buffer, i32 scale, i32 x, i32 y, i32 w,
     // Re-render
     gpu_clip_strokes_and_update(&milton->root_arena,
                                 r, milton->view, milton->view->scale, milton->canvas->root_layer,
-                                &milton->working_stroke, 0, 0, r->width,
+                                &milton->working_stroke, milton->working_grid, 0, 0, r->width,
                                 r->height);
     gpu_render(r, 0, 0, r->width, r->height);
 }

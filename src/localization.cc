@@ -41,6 +41,9 @@ init_localization()
         EN(TXT_brushes, "Brushes");
         EN(TXT_opacity, "Opacity");
         EN(TXT_brush_size, "Brush size");
+        EN(TXT_grid_cols, "Columns");
+        EN(TXT_grid_rows, "Rows");
+        EN(TXT_grid_tile_size, "Tile Size");
         EN(TXT_switch_to_brush, "Brush");
         EN(TXT_switch_to_grid, "To Grid");
         EN(TXT_switch_to_eraser, "Eraser");

@@ -15,6 +15,9 @@
 #define NO_PRESSURE_INFO            -1.0f
 #define MAX_INPUT_BUFFER_ELEMS      32
 #define MILTON_MAX_BRUSH_SIZE       100
+#define MILTON_MAX_GRID_COLS        128
+#define MILTON_MAX_GRID_ROWS        128
+#define MILTON_MAX_GRID_TILE_SIZE   200
 #define MILTON_HIDE_BRUSH_OVERLAY_AT_THIS_SIZE 12
 #define HOVER_FLASH_THRESHOLD_MS    500  // How long does the hidden brush hover show when it has changed size.
 
@@ -43,6 +46,7 @@ enum class MiltonMode
 enum BrushEnum
 {
     BrushEnum_PEN,
+    BrushEnum_GRID,
     BrushEnum_ERASER,
     BrushEnum_PRIMITIVE,
 
@@ -92,6 +96,26 @@ enum PrimitiveFSM
     Primitive_WAITING,
     Primitive_DRAWING,
     Primitive_DONE,
+};
+enum GridFSM
+{
+    Grid_WAITING,
+    Grid_DRAWING,
+};
+
+struct Grid
+{
+    b32 active;
+    Rect bounding_box;
+    Brush brush;
+    v2l origin;
+    i32 layer_id;
+    i32 cols;
+    i32 rows;
+    i32 tile_size;
+    DArray<Stroke> strokes;
+    DArray<v2l> points;
+    DArray<f32> pressures;
 };
 
 #pragma pack(push, 1)
@@ -158,6 +182,7 @@ struct Milton
     i32         brush_sizes[BrushEnum_COUNT];  // In screen pixels
 
     Stroke      working_stroke;
+    Grid        working_grid[1];
     // ----  // gui->picker.info also stored
 
 
@@ -173,6 +198,7 @@ struct Milton
     MiltonMode last_mode;
 
     PrimitiveFSM primitive_fsm;
+    GridFSM grid_fsm;
 
     SmoothFilter* smooth_filter;
 

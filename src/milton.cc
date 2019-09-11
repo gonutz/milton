@@ -50,8 +50,7 @@ milton_get_brush_enum(Milton* milton)
             brush_enum = BrushEnum_PEN;
         } break;
         case MiltonMode::GRID: {
-            // TODO(ameen): Copy-pasted! Find where this is used and make sure it make sense for grid.
-            brush_enum = BrushEnum_PEN;
+            brush_enum = BrushEnum_GRID;
         } break;
         case MiltonMode::ERASER: {
             brush_enum = BrushEnum_ERASER;
@@ -89,6 +88,8 @@ milton_update_brushes(Milton* milton)
                 // Grab the largest float that's less than 1.0f
                 *reinterpret_cast<u32*>(&brush->color.g) -= 1;
             }
+        } else if ( i == BrushEnum_GRID ) {
+            brush->color = to_premultiplied(gui_get_picker_rgb(milton->gui), brush->alpha);
         }
         else if ( i == BrushEnum_ERASER ) {
             brush->color = k_eraser_color;
@@ -100,6 +101,7 @@ milton_update_brushes(Milton* milton)
 
     int brush_enum = milton_get_brush_enum(milton);
     milton->working_stroke.brush = milton->brushes[brush_enum];
+    milton->working_grid->brush = milton->brushes[brush_enum];
 }
 
 
@@ -197,18 +199,78 @@ clear_stroke_redo(Milton* milton)
     }
 }
 
+void push_line(Grid *g, CanvasView *view, v2l p0, v2l p1)
+{
+    auto s = add(&g->strokes);
+    *s = {};
+    s->points = g->points.data + g->points.count;
+    g->points.count += 2;
+    s->pressures = g->pressures.data + g->pressures.count;
+    g->pressures.count += 2;
+
+    s->brush = g->brush;
+    s->num_points = 2;
+    s->points[0] = raster_to_canvas(view, p0);
+    s->points[1] = raster_to_canvas(view, p1);
+    s->pressures[0] = 1.0f;
+    s->pressures[1] = 1.0f;
+}
 static void
 milton_grid_input(Milton* milton, MiltonInput* input, b32 end_stroke)
 {
-    v2l point = raster_to_canvas(milton->view, input->points[input->input_count - 1]);
-    Stroke* ws = &milton->working_stroke;
-    
-    f32 pressure = 1.0f;
-    ws->brush = milton_get_brush(milton);
-    ws->layer_id = milton->view->working_layer_id;
-    ws->num_points = 1;
-    ws->points[0]  = point;
-    ws->pressures[0] = 1.0f;
+    auto wg = milton->working_grid;
+    if ( end_stroke && milton->grid_fsm == Grid_DRAWING) {
+        milton->grid_fsm = Grid_WAITING;
+        wg->active = false;
+    }
+    else if (input->input_count > 0) {
+        v2l point = input->points[input->input_count - 1];
+        if ( milton->grid_fsm == Grid_WAITING ) {
+            milton->grid_fsm             = Grid_DRAWING;
+            wg->brush = milton_get_brush(milton);
+            wg->active = true;
+            wg->origin = point;
+            wg->layer_id = milton->view->working_layer_id;
+            wg->bounding_box = rect_without_size();
+        }
+        else if ( milton->grid_fsm == Grid_DRAWING ) {
+            wg->origin = point;
+        }
+
+        wg->strokes.count = 0;
+        wg->points.count = 0;
+        wg->pressures.count = 0;
+        i32 stroke_count = wg->cols + 1 + wg->rows + 1;
+        reserve(&wg->strokes, stroke_count);
+        reserve(&wg->points, stroke_count*2);
+        reserve(&wg->pressures, stroke_count*2);
+
+        for(i64 i=0; i<wg->cols+1; i++)
+        {
+            auto x = wg->origin.x + i*wg->tile_size;
+            auto y0 = wg->origin.y;
+            auto y1 = wg->origin.y + wg->rows*wg->tile_size;
+            v2l p0 = {x, y0};
+            v2l p1 = {x, y1};
+            push_line(wg, milton->view, p0, p1);
+        }
+        for(i64 i=0; i<wg->rows+1; i++)
+        {
+            auto y = wg->origin.y + i*wg->tile_size;
+            auto x0 = wg->origin.x;
+            auto x1 = wg->origin.x + wg->cols*wg->tile_size;
+            v2l p0 = {x0, y};
+            v2l p1 = {x1, y};
+            push_line(wg, milton->view, p0, p1);
+        }
+        // TODO(ameen): The bb will always grow never shrink. I think it should instead be the union of
+        // previous bb and current bb to update the previous area.
+        for(i64 i=0; i<wg->strokes.count; i++)
+        {
+            auto s = wg->strokes.data + i;
+            wg->bounding_box = rect_union(wg->bounding_box, bounding_box_for_stroke_or_empty(s));
+        }
+    }
 }
 static void
 milton_primitive_input(Milton* milton, MiltonInput* input, b32 end_stroke)
@@ -217,7 +279,7 @@ milton_primitive_input(Milton* milton, MiltonInput* input, b32 end_stroke)
        milton->primitive_fsm = Primitive_WAITING;
     }
     else if (input->input_count > 0) {
-        v2l point = raster_to_canvas_with_scale(milton->view, input->points[input->input_count - 1], 1);
+        v2l point = raster_to_canvas(milton->view, input->points[input->input_count - 1]);
         Stroke* ws = &milton->working_stroke;
         if ( milton->primitive_fsm == Primitive_WAITING ) {
             milton->primitive_fsm             = Primitive_DRAWING;
@@ -533,6 +595,10 @@ milton_init(Milton* milton, i32 width, i32 height, f32 ui_scale, PATH_CHAR* file
 
     reset_working_stroke(milton);
 
+    milton->working_grid->cols = 16;
+    milton->working_grid->rows = 16;
+    milton->working_grid->tile_size = 60;
+
     milton->current_mode = MiltonMode::PEN;
     milton->last_mode = MiltonMode::PEN;
 
@@ -590,6 +656,9 @@ milton_init(Milton* milton, i32 width, i32 height, f32 ui_scale, PATH_CHAR* file
     for ( int i = 0; i < BrushEnum_COUNT; ++i ) {
         switch ( i ) {
         case BrushEnum_PEN: {
+           milton->brush_sizes[i] = 10;
+        } break;
+        case BrushEnum_GRID: {
            milton->brush_sizes[i] = 10;
         } break;
         case BrushEnum_ERASER: {
@@ -1249,7 +1318,7 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
         }
     }
 
-    if ( input->input_count > 0 || (input->flags & MiltonInputFlags_CLICK) ) {
+    if ( input->input_count > 0 || (input->flags & MiltonInputFlags_CLICK) || end_stroke) {
         if ( current_mode_is_for_drawing(milton) ) {
             if ( !is_user_drawing(milton)
                  && gui_consume_input(milton->gui, input) ) {
@@ -1369,7 +1438,12 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
             gui_deactivate(milton->gui);
             brush_outline_should_draw = false;
         } else {
-            if ( milton->working_stroke.num_points > 0 ) {
+            if(milton->current_mode == MiltonMode::GRID)
+            {
+                milton->render_settings.do_full_redraw = true;
+                // TODO(ameen): Write the stroke to the layer.
+            }
+            else if ( milton->working_stroke.num_points > 0 ) {
                 // We used the selected color to draw something. Push.
                 if (  (milton->current_mode == MiltonMode::PEN ||
                        milton->current_mode == MiltonMode::PRIMITIVE)
@@ -1626,13 +1700,24 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
         view_width  = bounds.right - bounds.left;
         view_height = bounds.bottom - bounds.top;
     }
+    else if ( milton->working_grid->active ) {
+        Rect bounds      = milton->working_grid->bounding_box;
+        bounds.top_left  = canvas_to_raster(milton->view, bounds.top_left);
+        bounds.bot_right = canvas_to_raster(milton->view, bounds.bot_right);
+
+        view_x           = bounds.left;
+        view_y           = bounds.top;
+
+        view_width  = bounds.right - bounds.left;
+        view_height = bounds.bottom - bounds.top;
+    }
 
     PROFILE_GRAPH_BEGIN(clipping);
 
     i64 render_scale = milton_render_scale(milton);
 
     gpu_clip_strokes_and_update(&milton->root_arena, milton->renderer, milton->view, render_scale,
-                                milton->canvas->root_layer, &milton->working_stroke,
+                                milton->canvas->root_layer, &milton->working_stroke, milton->working_grid,
                                 view_x, view_y, view_width, view_height, clip_flags);
     PROFILE_GRAPH_END(clipping);
 

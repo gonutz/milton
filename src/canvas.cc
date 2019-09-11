@@ -70,6 +70,21 @@ bounding_box_for_stroke(Stroke* stroke)
     Rect bb_enlarged = rect_enlarge(bb, stroke->brush.radius);
     return bb_enlarged;
 }
+Rect
+bounding_box_for_stroke_or_empty(Stroke* stroke)
+{
+    Rect result;
+    if(stroke->num_points > 0)
+    {
+        Rect bb = bounding_rect_for_points(stroke->points, stroke->num_points);
+        result = rect_enlarge(bb, stroke->brush.radius);
+    }
+    else
+    {
+        result = rect_without_size();
+    }
+    return result;
+}
 
 Rect
 bounding_box_for_last_n_points(Stroke* stroke, i32 last_n)

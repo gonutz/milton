@@ -298,6 +298,13 @@ gui_brush_window(MiltonInput* input, PlatformState* platform, Milton* milton)
                 milton->gui->flags |= (i32)MiltonGuiFlags_SHOWING_PREVIEW;
             }
 
+            if(milton->current_mode == MiltonMode::GRID)
+            {
+                ImGui::SliderInt(loc(TXT_grid_cols), &milton->working_grid->cols, 1, MILTON_MAX_GRID_COLS);
+                ImGui::SliderInt(loc(TXT_grid_rows), &milton->working_grid->rows, 1, MILTON_MAX_GRID_ROWS);
+                ImGui::SliderInt(loc(TXT_grid_tile_size), &milton->working_grid->tile_size, 1, MILTON_MAX_GRID_TILE_SIZE);
+            }
+
             if ( milton->current_mode != MiltonMode::PEN ) {
                 if ( ImGui::Button(loc(TXT_switch_to_brush)) ) {
                     i32 f = input->flags;

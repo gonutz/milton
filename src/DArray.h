@@ -86,6 +86,20 @@ push(DArray<T>* arr, const T& elem)
     arr->data[arr->count++] = elem;
     return &arr->data[arr->count-1];
 }
+template <typename T>
+T*
+add(DArray<T>* arr)
+{
+    if ( arr->data == NULL ) {
+        arr->capacity = 32;
+        arr->count = 0;
+        grow(arr);
+    }
+    else if ( arr->capacity <= arr->count ) {
+        grow(arr);
+    }
+    return &arr->data[arr->count++];
+}
 
 template <typename T>
 T*
