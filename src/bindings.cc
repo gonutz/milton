@@ -65,13 +65,14 @@ set_default_bindings(MiltonBindings* bs)
    binding(bs, Modifier_CTRL, 'o', Action_OPEN);
    binding(bs, (ModifierFlags)(Modifier_CTRL | Modifier_SHIFT), 's', Action_SAVE_AS);
 
-   binding(bs, Modifier_NONE, 'm', Action_TOGGLE_MENU);
-   binding(bs, Modifier_NONE, 'e', Action_MODE_ERASER);
-   binding(bs, Modifier_NONE, 'b', Action_MODE_PEN);
-   binding(bs, Modifier_NONE, 'i', Action_MODE_EYEDROPPER);
-   binding(bs, Modifier_NONE, 'l', Action_MODE_PRIMITIVE);
-   binding(bs, Modifier_NONE, Binding::F1, Action_HELP);
-   binding(bs, Modifier_NONE, '\t', Action_TOGGLE_GUI);
+    binding(bs, Modifier_NONE, 'm', Action_TOGGLE_MENU);
+    binding(bs, Modifier_NONE, 'e', Action_MODE_ERASER);
+    binding(bs, Modifier_NONE, 'b', Action_MODE_PEN);
+    binding(bs, Modifier_NONE, 'g', Action_MODE_GRID);
+    binding(bs, Modifier_NONE, 'i', Action_MODE_EYEDROPPER);
+    binding(bs, Modifier_NONE, 'l', Action_MODE_PRIMITIVE);
+    binding(bs, Modifier_NONE, Binding::F1, Action_HELP);
+    binding(bs, Modifier_NONE, '\t', Action_TOGGLE_GUI);
 
    binding(bs, Modifier_NONE, '1', Action_SET_BRUSH_ALPHA_10);
    binding(bs, Modifier_NONE, '2', Action_SET_BRUSH_ALPHA_20);
@@ -206,6 +207,9 @@ binding_dispatch_action(BindableAction a, MiltonInput* input, Milton* milton, v2
       } break;
       case Action_MODE_PEN: {
           input->mode_to_set = MiltonMode::PEN;
+      } break;
+      case Action_MODE_GRID: {
+          input->mode_to_set = MiltonMode::GRID;
       } break;
       case Action_MODE_EYEDROPPER: {
           input->mode_to_set = MiltonMode::EYEDROPPER;

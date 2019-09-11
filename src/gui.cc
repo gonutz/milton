@@ -273,6 +273,7 @@ gui_brush_window(MiltonInput* input, PlatformState* platform, Milton* milton)
     if ( show_brush_window ) {
         if ( ImGui::Begin(loc(TXT_brushes), NULL, default_imgui_window_flags) ) {
             if ( milton->current_mode == MiltonMode::PEN ||
+                 milton->current_mode == MiltonMode::GRID ||
                  milton->current_mode == MiltonMode::PRIMITIVE ) {
                 const float pen_alpha = milton_get_brush_alpha(milton);
                 mlt_assert(pen_alpha >= 0.0f && pen_alpha <= 1.0f);
@@ -302,6 +303,14 @@ gui_brush_window(MiltonInput* input, PlatformState* platform, Milton* milton)
                     i32 f = input->flags;
                     input->flags = (MiltonInputFlags)f;
                     input->mode_to_set = MiltonMode::PEN;
+                }
+            }
+            if ( milton->current_mode != MiltonMode::GRID ) {
+                if ( ImGui::Button(loc(TXT_switch_to_grid)) ) {
+                    // NOTE(ameen): I've no idea what the following two lines are doing! Old code maybe?
+                    i32 f = input->flags;
+                    input->flags = (MiltonInputFlags)f;
+                    input->mode_to_set = MiltonMode::GRID;
                 }
             }
 
@@ -500,6 +509,9 @@ gui_menu(MiltonInput* input, PlatformState* platform, Milton* milton, b32& show_
                 // Eraser
                 if ( ImGui::MenuItem(loc(TXT_eraser)) ) {
                     input->mode_to_set = MiltonMode::ERASER;
+                }
+                if ( ImGui::MenuItem(loc(TXT_grid)) ) {
+                    input->mode_to_set = MiltonMode::GRID;
                 }
                 // Panning
                 char* move_str = platform->is_panning==false? loc(TXT_move_canvas) : loc(TXT_stop_moving_canvas);

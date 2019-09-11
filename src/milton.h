@@ -37,6 +37,7 @@ enum class MiltonMode
     EYEDROPPER,
     HISTORY,
     PEEK_OUT,
+    GRID,
 };
 
 enum BrushEnum

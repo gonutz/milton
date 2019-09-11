@@ -49,6 +49,10 @@ milton_get_brush_enum(Milton* milton)
         case MiltonMode::PEN: {
             brush_enum = BrushEnum_PEN;
         } break;
+        case MiltonMode::GRID: {
+            // TODO(ameen): Copy-pasted! Find where this is used and make sure it make sense for grid.
+            brush_enum = BrushEnum_PEN;
+        } break;
         case MiltonMode::ERASER: {
             brush_enum = BrushEnum_ERASER;
         } break;
@@ -164,6 +168,7 @@ static b32
 mode_is_for_drawing(MiltonMode mode)
 {
     b32 result = mode == MiltonMode::PEN ||
+            mode == MiltonMode::GRID ||
             mode == MiltonMode::ERASER ||
             mode == MiltonMode::PRIMITIVE;
     return result;
@@ -193,13 +198,26 @@ clear_stroke_redo(Milton* milton)
 }
 
 static void
+milton_grid_input(Milton* milton, MiltonInput* input, b32 end_stroke)
+{
+    v2l point = raster_to_canvas(milton->view, input->points[input->input_count - 1]);
+    Stroke* ws = &milton->working_stroke;
+    
+    f32 pressure = 1.0f;
+    ws->brush = milton_get_brush(milton);
+    ws->layer_id = milton->view->working_layer_id;
+    ws->num_points = 1;
+    ws->points[0]  = point;
+    ws->pressures[0] = 1.0f;
+}
+static void
 milton_primitive_input(Milton* milton, MiltonInput* input, b32 end_stroke)
 {
     if ( end_stroke && milton->primitive_fsm == Primitive_DRAWING) {
        milton->primitive_fsm = Primitive_WAITING;
     }
     else if (input->input_count > 0) {
-        v2l point = raster_to_canvas(milton->view, input->points[input->input_count - 1]);
+        v2l point = raster_to_canvas_with_scale(milton->view, input->points[input->input_count - 1], 1);
         Stroke* ws = &milton->working_stroke;
         if ( milton->primitive_fsm == Primitive_WAITING ) {
             milton->primitive_fsm             = Primitive_DRAWING;
@@ -1231,7 +1249,7 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
         }
     }
 
-    if ( input->input_count > 0 || (input->flags | MiltonInputFlags_CLICK) ) {
+    if ( input->input_count > 0 || (input->flags & MiltonInputFlags_CLICK) ) {
         if ( current_mode_is_for_drawing(milton) ) {
             if ( !is_user_drawing(milton)
                  && gui_consume_input(milton->gui, input) ) {
@@ -1243,6 +1261,9 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
                 if ( milton->current_mode == MiltonMode::PRIMITIVE ) {
                     // Input for primitive.
                     milton_primitive_input(milton, input, end_stroke);
+                }
+                else if ( milton->current_mode == MiltonMode::GRID ) {
+                    milton_grid_input(milton, input, end_stroke);
                 }
                 else {  // Input for eraser and pen
                     Stroke* ws = &milton->working_stroke;
