@@ -45,7 +45,7 @@ init_localization()
         EN(TXT_grid_rows, "Rows");
         EN(TXT_grid_tile_size, "Tile Size");
         EN(TXT_switch_to_brush, "Brush");
-        EN(TXT_switch_to_grid, "To Grid");
+        EN(TXT_switch_to_grid, "Grid");
         EN(TXT_switch_to_eraser, "Eraser");
         EN(TXT_switch_to_primitive, "Lines");
         EN(TXT_choose_background_color, "Choose background color");

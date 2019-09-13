@@ -107,7 +107,9 @@ struct Grid
 {
     b32 active;
     b32 need_submit;
-    Rect bounding_box;
+    Rect prev_bounding_box;
+    Rect current_bounding_box;
+    Rect update_box;
     Brush brush;
     v2l origin;
     i32 layer_id;

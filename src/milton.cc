@@ -233,7 +233,8 @@ milton_grid_input(Milton* milton, MiltonInput* input, b32 end_stroke)
             wg->active = true;
             wg->origin = point;
             wg->layer_id = milton->view->working_layer_id;
-            wg->bounding_box = rect_without_size();
+            wg->prev_bounding_box = rect_without_size();
+            wg->current_bounding_box = rect_without_size();
         }
         else if ( milton->grid_fsm == Grid_DRAWING ) {
             wg->origin = point;
@@ -268,13 +269,14 @@ milton_grid_input(Milton* milton, MiltonInput* input, b32 end_stroke)
             push_line(wg, milton->view, p0, p1);
         }
 
-        // TODO(ameen): The bb will always grow, never shrink. I think it should instead be the union of
-        // previous bb and current bb to update the previous area.
+        wg->prev_bounding_box = wg->current_bounding_box;
+        wg->current_bounding_box = rect_without_size();
         for(i64 i=0; i<wg->strokes.count; i++)
         {
             auto s = wg->strokes.data + i;
-            wg->bounding_box = rect_union(wg->bounding_box, bounding_box_for_stroke_or_empty(s));
+            wg->current_bounding_box = rect_union(wg->current_bounding_box, bounding_box_for_stroke_or_empty(s));
         }
+        wg->update_box = rect_union(wg->prev_bounding_box, wg->current_bounding_box);
     }
 }
 static void
@@ -1445,10 +1447,6 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
         } else {
             if(milton->current_mode == MiltonMode::GRID)
             {
-                // NOTE(ameen): This function is very messy! For some reason releasing the mouse after panning is causing end_stroke to be true!
-                // This is total hack to prevent submiting the grid more than once. I can't cleanup this
-                // function because I don't own this code and I want to make it easy for me to port
-                // my changes to future releases of Milton.
                 if(milton->working_grid->need_submit)
                 {
                     milton->working_grid->need_submit = false;
@@ -1746,7 +1744,7 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
         view_height = bounds.bottom - bounds.top;
     }
     else if ( milton->working_grid->active ) {
-        Rect bounds      = milton->working_grid->bounding_box;
+        Rect bounds      = milton->working_grid->update_box;
         bounds.top_left  = canvas_to_raster(milton->view, bounds.top_left);
         bounds.bot_right = canvas_to_raster(milton->view, bounds.bot_right);
 

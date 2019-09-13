@@ -266,7 +266,7 @@ void
 gui_brush_window(MiltonInput* input, PlatformState* platform, Milton* milton)
 {
     b32 show_brush_window = (current_mode_is_for_drawing(milton));
-    auto default_imgui_window_flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
+    auto default_imgui_window_flags = ImGuiWindowFlags_NoCollapse;
     MiltonGui* gui = milton->gui;
 
     // Brush Window
