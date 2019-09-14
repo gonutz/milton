@@ -685,6 +685,7 @@ milton_init(Milton* milton, i32 width, i32 height, f32 ui_scale, PATH_CHAR* file
            milton->brush_sizes[i] = 40;
         } break;
         case BrushEnum_PRIMITIVE: {
+           milton->brushes[i].alpha = 1.0f;
            milton->brush_sizes[i] = 10;
         } break;
         case BrushEnum_NOBRUSH: { {
@@ -705,7 +706,7 @@ milton_init(Milton* milton, i32 width, i32 height, f32 ui_scale, PATH_CHAR* file
     milton_validate(milton);
 
     milton_update_brushes(milton);
-    
+
     // Enable brush smoothing by default
     if ( !milton_brush_smoothing_enabled(milton) ) {
         milton_toggle_brush_smoothing(milton);
