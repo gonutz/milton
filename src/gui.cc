@@ -691,9 +691,9 @@ milton_imgui_tick(MiltonInput* input, PlatformState* platform,  Milton* milton)
         /* ImGuiSetCond_Once          = 1 << 1, // Only set the variable on the first call per runtime session */
         /* ImGuiSetCond_FirstUseEver */
 
-        const f32 brush_window_height = ui_scale * 140;
+        const f32 brush_window_height = ui_scale * 250;
         ImGui::SetNextWindowPos(ImVec2(ui_scale * 10, ui_scale * 10 + (float)pbounds.bottom), ImGuiSetCond_FirstUseEver);
-        ImGui::SetNextWindowSize({ui_scale * 271, brush_window_height}, ImGuiSetCond_FirstUseEver);  // We don't want to set it *every* time, the user might have preferences
+        ImGui::SetNextWindowSize({ui_scale * 300, brush_window_height}, ImGuiSetCond_FirstUseEver);  // We don't want to set it *every* time, the user might have preferences
 
         gui_brush_window(input, platform, milton);
 
