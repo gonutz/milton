@@ -65,6 +65,7 @@ struct HistoryElement
 {
     int type;
     i32 layer_id;  // HistoryElement_STROKE_ADD
+    i32 stroke_count;
 };
 
 struct MiltonGui;

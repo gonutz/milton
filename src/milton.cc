@@ -1253,19 +1253,18 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
                 HistoryElement h = pop(&milton->canvas->history);
                 Layer* l = layer::get_by_id(milton->canvas->root_layer, h.layer_id);
                 // found a thing to undo.
+                i32 count = h.stroke_count > 0 ? h.stroke_count : 1;
                 if ( l ) {
-                    if ( l->strokes.count > 0 ) {
-                        Stroke* stroke_ptr = peek(&l->strokes);
+                    for(i32 i=0; i<count; i++)
+                    {
+                        if ( l->strokes.count <= 0 )break;
+                        if ( i > 0 ) h = pop(&milton->canvas->history);
                         Stroke stroke = pop(&l->strokes);
                         push(&milton->canvas->stroke_graveyard, stroke);
                         push(&milton->canvas->redo_stack, h);
 
                         milton->render_settings.do_full_redraw = true;
                         render_flags |= RenderBackendFlags_WITH_BLUR;
-
-                        SaveBlockHeader header = {};
-                        header.type = Block_LAYER_CONTENT;
-                        header.block_layer.id = h.layer_id;
                     }
                     break;
                 }
@@ -1276,26 +1275,25 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
                 HistoryElement h = pop(&milton->canvas->redo_stack);
                 switch ( h.type ) {
                 case HistoryElement_STROKE_ADD: {
+
+                    i32 s_count = h.stroke_count > 0 ? h.stroke_count : 1;
                     Layer* l = layer::get_by_id(milton->canvas->root_layer, h.layer_id);
-                    if ( l && count(&milton->canvas->stroke_graveyard) > 0 ) {
-                        Stroke stroke = pop(&milton->canvas->stroke_graveyard);
-                        if ( stroke.layer_id == h.layer_id ) {
-                            push(&l->strokes, stroke);
-                            push(&milton->canvas->history, h);
+                    if ( l ) {
+                        for(i32 i=0; i<s_count; i++)
+                        {
+                            if ( count(&milton->canvas->stroke_graveyard) <= 0 ) break;
+                            if ( i > 0 ) h = pop(&milton->canvas->redo_stack);
+                            
+                            Stroke stroke = pop(&milton->canvas->stroke_graveyard);
+                            if ( stroke.layer_id == h.layer_id ) {
+                                push(&l->strokes, stroke);
+                                push(&milton->canvas->history, h);
 
-                            milton->render_settings.do_full_redraw = true;
-                            render_flags |= RenderBackendFlags_WITH_BLUR;
-
-                            SaveBlockHeader header = {};
-                            header.type = Block_LAYER_CONTENT;
-                            header.block_layer.id = h.layer_id;
-
-                            break;
+                                milton->render_settings.do_full_redraw = true;
+                                render_flags |= RenderBackendFlags_WITH_BLUR;
+                            }
                         }
-
-                        stroke = pop(&milton->canvas->stroke_graveyard);  // Keep popping in case the graveyard has info from deleted layers
                     }
-
                 } break;
                 /* case HistoryElement_LAYER_DELETE: { */
                 /* } break; */
@@ -1475,7 +1473,11 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
 
                         // TODO(ameen): We should add all grid strokes in one history element so it can be Undo-ed in one pop.
                         // TODO(ameen): Make sure HistoryElement is not serialized before changing it.
-                        HistoryElement h = { HistoryElement_STROKE_ADD, milton->canvas->working_layer->id };
+                        HistoryElement h = { 
+                            HistoryElement_STROKE_ADD, 
+                            milton->canvas->working_layer->id, 
+                            (i32)milton->working_grid->strokes.count
+                        };
                         push(&milton->canvas->history, h);
                     }
 

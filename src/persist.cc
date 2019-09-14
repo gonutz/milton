@@ -288,8 +288,11 @@ milton_load(Milton* milton)
         READ(&history_count, sizeof(history_count), 1, fd);
         reset(&milton->canvas->history);
         reserve(&milton->canvas->history, history_count);
-        READ(milton->canvas->history.data, sizeof(*milton->canvas->history.data), (size_t)history_count, fd);
         milton->canvas->history.count = history_count;
+        for(i32 i=0; i<history_count; i++)
+        {
+            READ(&milton->canvas->history[i], 8, 1, fd);
+        }
 
         // MLT 3
         // Layer alpha
@@ -576,9 +579,13 @@ milton_save(Milton* milton)
                             // Undo history
                             //
 
-                            if ( write_data(&history_count, sizeof(history_count), 1, fd) &&
-                                 write_data(milton->canvas->history.data, sizeof(*milton->canvas->history.data), (size_t)history_count, fd) ) {
+                            b32 history_written = write_data(&history_count, sizeof(history_count), 1, fd);
+                            for(i32 i=0; history_written && i<history_count; i++)
+                            {
+                                history_written = history_written && write_data(&milton->canvas->history[i], 8, 1, fd);
+                            }
 
+                            if ( history_written ) {
                                 //
                                 // Layer alpha
                                 //
