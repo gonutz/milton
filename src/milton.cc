@@ -666,7 +666,8 @@ milton_init(Milton* milton, i32 width, i32 height, f32 ui_scale, PATH_CHAR* file
            milton->brush_sizes[i] = 10;
         } break;
         case BrushEnum_GRID: {
-           milton->brush_sizes[i] = 10;
+           milton->brush_sizes[i] = 2;
+           milton->brushes[i].alpha = 1.0f;
         } break;
         case BrushEnum_ERASER: {
            milton->brush_sizes[i] = 40;

@@ -46,12 +46,13 @@ enum class MiltonMode
 enum BrushEnum
 {
     BrushEnum_PEN,
-    BrushEnum_GRID,
     BrushEnum_ERASER,
     BrushEnum_PRIMITIVE,
 
     BrushEnum_NOBRUSH,  // Non-painting modes
 
+    BrushEnum_GRID,
+    
     BrushEnum_COUNT,
 };
 

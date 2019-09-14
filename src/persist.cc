@@ -561,7 +561,7 @@ milton_save(Milton* milton)
                             }
                         }
                         else if ( milton_binary_version > 5 ) {
-                            u16 num_brushes = BrushEnum_COUNT;  // Brush, eraser, primitive.
+                            u16 num_brushes = 3;  // Brush, eraser, primitive.
                             if ( !write_data(&num_brushes, sizeof(num_brushes), 1, fd) ||
                                  !write_data(&milton->brushes, sizeof(Brush), num_brushes, fd) ||
                                  !write_data(&milton->brush_sizes, sizeof(i32), num_brushes, fd) ) {
