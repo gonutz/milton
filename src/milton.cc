@@ -704,6 +704,8 @@ milton_init(Milton* milton, i32 width, i32 height, f32 ui_scale, PATH_CHAR* file
 
     milton_validate(milton);
 
+    milton_update_brushes(milton);
+    
     // Enable brush smoothing by default
     if ( !milton_brush_smoothing_enabled(milton) ) {
         milton_toggle_brush_smoothing(milton);
