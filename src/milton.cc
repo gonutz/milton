@@ -244,12 +244,24 @@ milton_grid_input(Milton* milton, MiltonInput* input, b32 end_stroke)
         wg->points.count = 0;
         wg->pressures.count = 0;
         i32 stroke_count = wg->cols + 1 + wg->rows + 1;
+
+        auto old_capacity = wg->strokes.capacity;
+        auto new_capacity = stroke_count;
         reserve(&wg->strokes, stroke_count);
         reserve(&wg->points, stroke_count*2);
         reserve(&wg->pressures, stroke_count*2);
 
-        // TODO(ameen): The following code causes line crossings to be more opaque than everywhere else. One solution is to draw the grid as small segments that
-        // doesn't cross each other. The renderer doesn't support easily adding new types of objects.
+        // NOTE(ameen): We need to clear the new data to zero. We cannot clear the entire array because it
+        // contains handles allocated GPU resources.
+        if(new_capacity > old_capacity)
+        {
+            auto byte_count = (new_capacity - old_capacity) * sizeof(*wg->strokes.data);
+            memset(wg->strokes.data+old_capacity, 0, byte_count);
+        }
+
+        // TODO(ameen): The following code causes line crossings to be more opaque than everywhere else. One
+        // solution is to draw the grid as small segments that doesn't cross each other. The renderer doesn't
+        // support easily adding new types of objects.
         for(i64 i=0; i<wg->cols+1; i++)
         {
             auto x = wg->origin.x + i*wg->tile_size;
