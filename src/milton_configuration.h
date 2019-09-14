@@ -6,6 +6,7 @@
 #define MILTON_MAJOR_VERSION 1
 #define MILTON_MINOR_VERSION 6
 #define MILTON_MICRO_VERSION 2
+#define MILTON_GRID_VERSION 1
 
 
 #if !defined(MILTON_DEBUG)  // Might be defined by cmake

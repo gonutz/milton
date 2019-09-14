@@ -489,7 +489,7 @@ milton_main(bool is_fullscreen, char* file_to_open)
                 = "Release";
 #endif
 
-        milton_log("Running Milton %d.%d.%d (%s) \n", MILTON_MAJOR_VERSION, MILTON_MINOR_VERSION, MILTON_MICRO_VERSION, release_string);
+        milton_log("Running Milton %d.%d.%dg%d (%s) \n", MILTON_MAJOR_VERSION, MILTON_MINOR_VERSION, MILTON_MICRO_VERSION, MILTON_GRID_VERSION, release_string);
     }
     // Note: Possible crash regarding SDL_main entry point.
     // Note: Event handling, File I/O and Threading are initialized by default

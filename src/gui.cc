@@ -555,8 +555,8 @@ gui_menu(MiltonInput* input, PlatformState* platform, Milton* milton, b32& show_
                 if ( ImGui::MenuItem(loc(TXT_milton_version)) ) {
                     char buffer[1024];
                     snprintf(buffer, array_count(buffer),
-                             "Milton version %d.%d.%d",
-                             MILTON_MAJOR_VERSION, MILTON_MINOR_VERSION, MILTON_MICRO_VERSION);
+                             "Milton version %d.%d.%dg%d",
+                             MILTON_MAJOR_VERSION, MILTON_MINOR_VERSION, MILTON_MICRO_VERSION, MILTON_GRID_VERSION);
                     platform_dialog(buffer, "Milton Version");
                 }
                 if (  ImGui::MenuItem(loc(TXT_website))  ) {
