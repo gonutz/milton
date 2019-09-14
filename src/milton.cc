@@ -1471,8 +1471,11 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
                         mlt_assert(new_stroke.num_points <= STROKE_MAX_POINTS);
                         auto* stroke = layer::layer_push_stroke(milton->canvas->working_layer, new_stroke);
 
-                        // TODO(ameen): We should add all grid strokes in one history element so it can be Undo-ed in one pop.
-                        // TODO(ameen): Make sure HistoryElement is not serialized before changing it.
+                        // NOTE(ameen): Undo/Redo for grid as one step works as long as we're in the same
+                        // session of Milton. Once the data is serialized to file and deserialized again this
+                        // information is lost and Undo/Redo will act on each stroke in the grid. The reason
+                        // is I don't want to modify the file format because I want to maintain the ability to
+                        // port changes to newer versions of Milton.
                         HistoryElement h = { 
                             HistoryElement_STROKE_ADD, 
                             milton->canvas->working_layer->id, 
