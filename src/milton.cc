@@ -295,7 +295,7 @@ static void
 milton_primitive_input(Milton* milton, MiltonInput* input, b32 end_stroke)
 {
     if ( end_stroke && milton->primitive_fsm == Primitive_DRAWING) {
-       milton->primitive_fsm = Primitive_WAITING;
+        milton->primitive_fsm = Primitive_WAITING;
     }
     else if (input->input_count > 0) {
         v2l point = raster_to_canvas(milton->view, input->points[input->input_count - 1]);
@@ -309,7 +309,7 @@ milton_primitive_input(Milton* milton, MiltonInput* input, b32 end_stroke)
             ws->layer_id                      = milton->view->working_layer_id;
         }
         else if ( milton->primitive_fsm == Primitive_DRAWING ) {
-           milton->working_stroke.points[1] = point;
+            milton->working_stroke.points[1] = point;
         }
     }
 }
@@ -520,7 +520,7 @@ milton_get_brush_radius(Milton* milton)
     int brush_enum = milton_get_brush_enum(milton);
     i32 brush_size = milton->brush_sizes[brush_enum];
     if ( brush_size <= 0 ) {
-       brush_size = 1;
+        brush_size = 1;
     }
     return brush_size;
 }
@@ -675,24 +675,24 @@ milton_init(Milton* milton, i32 width, i32 height, f32 ui_scale, PATH_CHAR* file
     for ( int i = 0; i < BrushEnum_COUNT; ++i ) {
         switch ( i ) {
         case BrushEnum_PEN: {
-           milton->brush_sizes[i] = 10;
+            milton->brush_sizes[i] = 10;
         } break;
         case BrushEnum_GRID: {
-           milton->brush_sizes[i] = 2;
-           milton->brushes[i].alpha = 1.0f;
+            milton->brush_sizes[i] = 2;
+            milton->brushes[i].alpha = 1.0f;
         } break;
         case BrushEnum_ERASER: {
-           milton->brush_sizes[i] = 40;
+            milton->brush_sizes[i] = 40;
         } break;
         case BrushEnum_PRIMITIVE: {
-           milton->brushes[i].alpha = 1.0f;
-           milton->brush_sizes[i] = 10;
+            milton->brushes[i].alpha = 1.0f;
+            milton->brush_sizes[i] = 10;
         } break;
         case BrushEnum_NOBRUSH: { {
-           milton->brush_sizes[i] = 1;
+            milton->brush_sizes[i] = 1;
         } } break;
         default: {
-           INVALID_CODE_PATH;
+            INVALID_CODE_PATH;
         } break;
         }
         mlt_assert(milton->brush_sizes[i] > 0 && milton->brush_sizes[i] <= MILTON_MAX_BRUSH_SIZE);
@@ -922,7 +922,7 @@ milton_save_thread(void* state_)
                     milton->save_flag = SaveEnum_WAITING;
                 }
             }
-			wait_begin_us = perf_counter();
+            wait_begin_us = perf_counter();
         }
         SDL_UnlockMutex(milton->save_mutex);
 
@@ -1299,7 +1299,7 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
                         {
                             if ( count(&milton->canvas->stroke_graveyard) <= 0 ) break;
                             if ( i > 0 ) h = pop(&milton->canvas->redo_stack);
-                            
+
                             Stroke stroke = pop(&milton->canvas->stroke_graveyard);
                             if ( stroke.layer_id == h.layer_id ) {
                                 push(&l->strokes, stroke);
@@ -1492,9 +1492,9 @@ milton_update_and_render(Milton* milton, MiltonInput* input)
                         // information is lost and Undo/Redo will act on each stroke in the grid. The reason
                         // is I don't want to modify the file format because I want to maintain the ability to
                         // port changes to newer versions of Milton.
-                        HistoryElement h = { 
-                            HistoryElement_STROKE_ADD, 
-                            milton->canvas->working_layer->id, 
+                        HistoryElement h = {
+                            HistoryElement_STROKE_ADD,
+                            milton->canvas->working_layer->id,
                             (i32)milton->working_grid->strokes.count
                         };
                         push(&milton->canvas->history, h);

@@ -14,7 +14,7 @@
 size_t
 get_system_RAM()
 {
-   return (size_t)SDL_GetSystemRAM() * 1024 * 1024;
+    return (size_t)SDL_GetSystemRAM() * 1024 * 1024;
 }
 
 v2l
@@ -80,8 +80,8 @@ distance(v2f a, v2f b)
 i32
 manhattan_distance(v2i a, v2i b)
 {
-   i32 dist = MLT_ABS(a.x - b.x) + MLT_ABS(a.y - b.y);
-   return dist;
+    i32 dist = MLT_ABS(a.x - b.x) + MLT_ABS(a.y - b.y);
+    return dist;
 }
 
 f32
@@ -100,15 +100,15 @@ radians_to_degrees(f32 r)
 f32
 norm(v2f v)
 {
-   f32 result = sqrtf(v.x * v.x + v.y * v.y);
-   return result;
+    f32 result = sqrtf(v.x * v.x + v.y * v.y);
+    return result;
 }
 
 v2f
 normalized (v2f v)
 {
-   v2f result = v / norm(v);
-   return result;
+    v2f result = v / norm(v);
+    return result;
 }
 
 
@@ -125,10 +125,10 @@ orientation(v2f a, v2f b, v2f c)
 b32
 is_inside_triangle(v2f point, v2f a, v2f b, v2f c)
 {
-   b32 is_inside =
-           (orientation(a, b, point) <= 0) &&
-           (orientation(b, c, point) <= 0) &&
-           (orientation(c, a, point) <= 0);
+    b32 is_inside =
+            (orientation(a, b, point) <= 0) &&
+            (orientation(b, c, point) <= 0) &&
+            (orientation(c, a, point) <= 0);
     return is_inside;
 }
 
@@ -176,8 +176,8 @@ closest_point_in_segment_f(i32 ax, i32 ay,
 
 v2i
 closest_point_in_segment(v2i a, v2i b,
-                             v2f ab, f32 ab_magnitude_squared,
-                             v2i point, f32* out_t)
+                         v2f ab, f32 ab_magnitude_squared,
+                         v2i point, f32* out_t)
 {
     v2i result;
     f32 mag_ab = sqrtf(ab_magnitude_squared);
@@ -272,12 +272,12 @@ rect_union(Rect a, Rect b)
 b32
 rect_intersects_rect(Rect a, Rect b)
 {
-   b32 intersects = true;
-   if ( a.left > b.right || b.left > a.right
-        || a.top > b.bottom || b.top > a.bottom ) {
-      intersects = false;
-   }
-   return intersects;
+    b32 intersects = true;
+    if ( a.left > b.right || b.left > a.right ||
+         a.top > b.bottom || b.top > a.bottom ) {
+        intersects = false;
+    }
+    return intersects;
 }
 
 Rect
@@ -300,17 +300,17 @@ rect_intersect(Rect a, Rect b)
 Rect
 rect_stretch(Rect rect, i32 width)
 {
-   Rect stretched = rect;
-   // Make the raster limits at least as wide as a block
-   if ( stretched.bottom - stretched.top < width ) {
-      stretched.top -= width / 2;
-      stretched.bottom += width / 2;
-   }
-   if ( stretched.right - stretched.left < width ) {
-      stretched.left -= width / 2;
-      stretched.right += width / 2;
-   }
-   return stretched;
+    Rect stretched = rect;
+    // Make the raster limits at least as wide as a block
+    if ( stretched.bottom - stretched.top < width ) {
+        stretched.top -= width / 2;
+        stretched.bottom += width / 2;
+    }
+    if ( stretched.right - stretched.left < width ) {
+        stretched.left -= width / 2;
+        stretched.right += width / 2;
+    }
+    return stretched;
 }
 
 Rect
@@ -433,7 +433,7 @@ is_rect_within_rect(Rect a, Rect b)
          || (a.bottom > b.bottom) ) {
         return false;
     }
-   return true;
+    return true;
 }
 
 Rect
@@ -451,7 +451,7 @@ rect_from_xywh(i32 x, i32 y, i32 w, i32 h)
 void
 utf16_to_utf8_simple(char* , char* )
 {
-   // Nothing needs to be done
+    // Nothing needs to be done
 }
 
 void
@@ -460,11 +460,11 @@ utf16_to_utf8_simple(wchar_t* utf16_name, char* utf8_name)
     for ( wchar_t* iter = utf16_name;
           *iter!='\0';
           ++iter ) {
-      if ( *iter <= 128 ) {
-         *utf8_name++ = (char)*iter;
-      }
-   }
-   *utf8_name='\0';
+        if ( *iter <= 128 ) {
+            *utf8_name++ = (char)*iter;
+        }
+    }
+    *utf8_name='\0';
 }
 
 wchar_t*

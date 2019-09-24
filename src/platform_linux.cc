@@ -182,7 +182,7 @@ platform_fname_at_config(PATH_CHAR* fname, size_t len)
 void
 platform_fname_at_exe(PATH_CHAR* fname, size_t len)
 {
-   // TODO: Fix this
+    // TODO: Fix this
 #if 0
     u32 bufsize = (u32)len;
     char buffer[MAX_PATH] = {};
@@ -304,7 +304,7 @@ platform_get_walltime()
 }
 
 void*
-platform_get_gl_proc(char* name) 
+platform_get_gl_proc(char* name)
 {
     return glXGetProcAddressARB((GLubyte*)name);
 }

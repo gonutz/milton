@@ -28,15 +28,15 @@
 #endif
 #if !defined(TESTING)
     #if defined(_WIN32)
-       #include "platform_main_windows.cc"
+        #include "platform_main_windows.cc"
     #elif defined(__linux__)
 //       #include "platform_main_unix.cc"
 //       #include "platform_main_linux.cc"
     #elif defined(__MACH__)
-       // #include "platform_main_unix.cc"
+        // #include "platform_main_unix.cc"
     #endif
 #else // TESTING
-   #include "tests.cc"
+    #include "tests.cc"
 #endif
 
 #include "third_party_libs.cc"
